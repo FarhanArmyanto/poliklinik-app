@@ -2,11 +2,16 @@
 
 namespace App\Http\Controllers;
 
+use App\Http\Controllers\Controller;
 use Illuminate\Http\Request;
+use App\Models\User;
+use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\Hash;
+
 
 class AuthController extends Controller
 {
-    function showLogin()
+    public function showLogin()
     {
         return view('auth.login');
     }
@@ -55,7 +60,7 @@ class AuthController extends Controller
             return redirect()->route('login');
         }
 
-        function showRegister()
+     public   function showRegister()
     {
         return view('auth.register');
     }
