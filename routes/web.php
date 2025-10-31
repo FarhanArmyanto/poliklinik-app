@@ -1,12 +1,12 @@
 <?php
 
 
-use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\AuthController;
 use App\Http\Controllers\Admin\PoliController;
 use App\Http\Controllers\Admin\DokterController;
 use App\Http\Controllers\Admin\PasienController;
 use App\Http\Controllers\Admin\ObatController; // <- Tambahkan ini
+use Illuminate\Support\Facades\Route;
 
 // Halaman Awal
 Route::get('/', function () {
@@ -33,6 +33,7 @@ Route::middleware(['auth', 'role:admin'])->prefix('admin')->group(function () {
     Route::resource('dokter', DokterController::class);
     Route::resource('pasien', PasienController::class);
     Route::resource('obat', ObatController::class); // Resource Obat
+    Route::resource('jadwal-periksa', DokterJadwalPeriksaController::class);
 });
 
 // ======================= DOKTER =======================
@@ -49,4 +50,6 @@ Route::middleware(['auth', 'role:pasien'])->prefix('pasien')->group(function () 
     Route::get('/dashboard', function () {
         return view('pasien.dashboard');
     })->name('pasien.dashboard');
+    Route::get('/daftar', [PasienPoliController::class, 'get'])->name('pasien.daftar');
+    Route::post('/daftar', [PasienPoliController::class, 'submit'])->name('pasien.daftar.submit');
 });
