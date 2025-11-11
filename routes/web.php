@@ -5,7 +5,9 @@ use App\Http\Controllers\AuthController;
 use App\Http\Controllers\Admin\PoliController;
 use App\Http\Controllers\Admin\DokterController;
 use App\Http\Controllers\Admin\PasienController;
-use App\Http\Controllers\Admin\ObatController; // <- Tambahkan ini
+use App\Http\Controllers\Admin\ObatController;
+use App\Http\Controllers\Pasien\PasienPoliController; // ✅ tambahkan ini
+
 use Illuminate\Support\Facades\Route;
 
 // Halaman Awal
@@ -50,6 +52,6 @@ Route::middleware(['auth', 'role:pasien'])->prefix('pasien')->group(function () 
     Route::get('/dashboard', function () {
         return view('pasien.dashboard');
     })->name('pasien.dashboard');
-    Route::get('/daftar', [PasienPoliController::class, 'get'])->name('pasien.daftar');
+    Route::get('/daftar', [PasienPoliController::class, 'index'])->name('pasien.daftar');
     Route::post('/daftar', [PasienPoliController::class, 'submit'])->name('pasien.daftar.submit');
 });
