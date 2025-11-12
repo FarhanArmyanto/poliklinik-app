@@ -81,7 +81,7 @@ class AuthController extends Controller
                 'no_rm' => $no_rm,
                 'email' => $request->email,
                 'password' => Hash::make($request->password),
-                'role' => 'pasien',
+                'role' => 'admin',
             ]);
 
             return redirect()->route('login');
