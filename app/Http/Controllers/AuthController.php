@@ -17,77 +17,67 @@ class AuthController extends Controller
 
     public function login(Request $request)
     {
-        $credentials = request()->only('email', 'password');
+        $request->validate([
+            'email' => 'required|email',
+            'password' => 'required',
+        ]);
 
-        if(Auth::attempt($credentials)){
-            $user = Auth::user();
-            // dd($user->role);
-            if($user->role == 'admin'){
-                return redirect()->route('admin.dashboard');
-            } elseif ($user->role == 'dokter'){
-                return redirect()->route('dokter.dashboard');
-            } else {
-                return redirect()->route('pasien.dashboard');
-            }
-            // dd($user);
+        if (Auth::attempt($request->only('email', 'password'))) {
+            $request->session()->regenerate();
+
+            return match (Auth::user()->role) {
+                'admin'  => redirect()->route('admin.dashboard'),
+                'dokter' => redirect()->route('dokter.dashboard'),
+                default  => redirect()->route('pasien.dashboard'),
+            };
         }
 
-        // dd($user->role);
-            return back()->withErrors(['email' => 'Email atau password Salah !']);
-        }
-
-        public function showRegister()
-        {
-            return view('auth.register');
-        } 
-
-        public function register(Request $request)
-        {
-            $request->validate([
-                'nama' => ['required', 'string' ,'max:255'],
-                // 'email' => ['required', 'string' ,'email' ,'max:255' ,'unique:',users::class],
-                'alamat' => ['required', 'string' ,'max:255'],
-                'no_ktp' => ['required' ,'string' ,'max:30'],
-                'no_hp' => ['required' ,'string' ,'max:20'],
-                'email' => ['required' ,'string' ,'email' ,'max:255' ,'unique:users,email'],
-                'password' => ['required','confirmed'],
-            ]);
-
-        if(User::where('no_ktp', $request->no_ktp)->exists()){
-            return back()->withErrors(['no_ktp' => 'Nomor Ktp Sudah terdaftar']);
-        }
-
-            $no_rm = date('Ym') . '-' . str_pad(
-                User::where('no_rm', 'like', date('Ym') . '-%')->count() + 1,
-                3,
-                '0',
-                STR_PAD_LEFT
-            );
-
-            /**
-             * Ym menghasilkan string tahun dan bulan
-             * User::where('no_rm', 'like', date('Ym') . '-%')->count() + 1, : menghitung berapa banyak pasien yang sudah punya no_rm dengan predik bulan ini dan + 1 agar nomor berikutnya jadi urutan ke 6
-             * 
-             * 4. str_pad(... , 3, '0', STR_PAD_LEFT) 
-             * Menambahkan nol di depan angka agar menjadi 3 digit
-             * output : 202509-006
-             * */
-
-            User::create([
-                'nama' => $request->nama,
-                'alamat' => $request->alamat,
-                'no_ktp' => $request->no_ktp,
-                'no_hp' => $request->no_hp,
-                'no_rm' => $no_rm,
-                'email' => $request->email,
-                'password' => Hash::make($request->password),
-                'role' => 'admin',
-            ]);
-
-            return redirect()->route('login');
-        
+        return back()->withErrors([
+            'email' => 'Email atau password salah!',
+        ]);
     }
-    
+
+    public function showRegister()
+    {
+        return view('auth.register');
+    }
+
+    public function register(Request $request)
+    {
+        $request->validate([
+            'nama' => ['required', 'string', 'max:255'],
+            'alamat' => ['required', 'string', 'max:255'],
+            'no_ktp' => ['required', 'string', 'max:30'],
+            'no_hp' => ['required', 'string', 'max:20'],
+            'email' => ['required', 'email', 'max:255', 'unique:users,email'],
+            'password' => ['required', 'confirmed'],
+        ]);
+
+        if (User::where('no_ktp', $request->no_ktp)->exists()) {
+            return back()->withErrors(['no_ktp' => 'Nomor KTP sudah terdaftar']);
+        }
+
+        $no_rm = date('Ym') . '-' . str_pad(
+            User::where('no_rm', 'like', date('Ym') . '-%')->count() + 1,
+            3,
+            '0',
+            STR_PAD_LEFT
+        );
+
+        User::create([
+            'nama' => $request->nama,
+            'alamat' => $request->alamat,
+            'no_ktp' => $request->no_ktp,
+            'no_hp' => $request->no_hp,
+            'no_rm' => $no_rm,
+            'email' => $request->email,
+            'password' => Hash::make($request->password),
+            'role' => 'pasien', // ✅ FIX UTAMA
+        ]);
+
+        return redirect()->route('login')->with('success', 'Registrasi berhasil, silakan login');
+    }
+
     public function logout()
     {
         Auth::logout();
@@ -96,7 +86,6 @@ class AuthController extends Controller
 
     public function dokter()
     {
-        $data = Poli::with('dokters')->get();
-        return $data;
+        return Poli::with('dokters')->get();
     }
 }
